@@ -1,0 +1,61 @@
+﻿@model IEnumerable<UrlShortener.Models.UrlShort>
+
+    @functions {
+        public string ShortenUrl(string url, int maxLength) 
+        { 
+            if (url.Length > maxLength) 
+            { 
+                return url.Substring(0, maxLength) + "..."; 
+            } 
+            return url; 
+        } 
+    }
+
+    @if (ViewData.ModelState.Any(ms => ms.Value.Errors.Count > 0))
+    {
+         <div class="alert alert-danger"> @Html.ValidationSummary(false, "", new { @class = "text-danger" }) </div>
+    }
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Original URL</th>
+            <th>Short URL</th>
+            <th>Created By</th>
+            <th>Created Date</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var url in Model)
+        {
+            <tr>
+                <td title="@url.OriginalUrl">@ShortenUrl(url.OriginalUrl, 40)</td>
+                <td>@url.ShortUrl</td>
+                <td>@url.CreatedBy</td>
+                <td>@url.CreatedDate</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@url.Id" class="ms-5 btn btn-primary">Details</a>
+                    @if (User.IsInRole("admin") || url.CreatedBy == User.Identity.Name)
+                    {
+                        <form asp-action="Delete" method="post" style="display:inline">
+                            <input type="hidden" name="id" value="@url.Id" />
+                            <button type="submit" class="btn btn-danger ms-3">Delete</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (User.Identity.IsAuthenticated)
+{
+    <form asp-action="Create" method="post">
+        <div class="form-group mt-3 mb-3">
+            <label>Original URL</label>
+            <input type="text" name="originalUrl" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Add new URL</button>
+    </form>
+}
